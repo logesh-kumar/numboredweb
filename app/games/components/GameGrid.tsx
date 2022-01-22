@@ -17,41 +17,80 @@ const GridItem: React.FC<{
 
 export const GameGrid: React.FC = () => {
   const [isPlaying, setIsPlaying] = useState(false)
-  const { elapsedTime } = useElapsedTime({ isPlaying })
   const [randomNumber, setRandomNumber] = useState(0)
+
+  const { elapsedTime } = useElapsedTime({ isPlaying })
   const randomNumberSum = randomNumber
     .toString()
     .split("")
     .map((a) => parseInt(a))
     .reduce((a, b) => a + b)
 
-  const [answer, setAnswer] = useState(["", "", "", "", ""])
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [gameStatus, setGameStaus] = useState<"inprogress" | "wrong" | "right">("inprogress")
+  const [answer, setAnswer] = useState({
+    1: ["", "", "", "", ""],
+    2: ["", "", "", "", ""],
+    3: ["", "", "", "", ""],
+  })
+
+  const [currentIndex, setCurrentIndex] = useState({
+    attempt: 1,
+    index: 0,
+  })
+
+  const [gameStatus, setGameStaus] = useState<{
+    [key: number]: "inprogress" | "solved" | "failed" | "idle"
+  }>({
+    1: "inprogress",
+    2: "idle",
+    3: "idle",
+  })
+
+  const gameOver =
+    gameStatus[1] === "solved" ||
+    gameStatus[2] === "solved" ||
+    gameStatus[3] === "solved" ||
+    gameStatus[3] === "failed"
 
   const handleNumberClick = (input) => {
-    setIsPlaying(true)
-    if (currentIndex <= 5 && answer.indexOf(input) === -1) {
-      setCurrentIndex((prev) => prev + 1)
-      let newans = [...answer]
-      newans[currentIndex] = input
+    if (isPlaying === false) {
+      setIsPlaying(true)
+    }
+
+    if (currentIndex.index <= 5 && answer[currentIndex.attempt].indexOf(input) === -1) {
+      setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
+      let newans = {
+        ...answer,
+        [currentIndex.attempt]: [...answer[currentIndex.attempt]],
+      }
+      newans[currentIndex.attempt][currentIndex.index] = input
       setAnswer(newans)
     }
   }
 
   const checkAnswer = () => {
-    const res: any = answer.reduce((a, b) => a + b)
+    const res: any = answer[currentIndex.attempt].reduce((a, b) => a + b)
     if (res === randomNumberSum) {
       setIsPlaying(false)
+    } else {
+      setCurrentIndex((prev) => ({ index: 0, attempt: prev.attempt + 1 }))
     }
-    setGameStaus(res === randomNumberSum ? "right" : "wrong")
+
+    setGameStaus({
+      ...gameStatus,
+      [currentIndex.attempt]: res === randomNumberSum ? "solved" : "failed",
+    })
   }
 
   const handleDelete = () => {
-    let newans = [...answer]
-    newans[currentIndex - 1] = ""
-    setCurrentIndex((prev) => prev - 1)
-    setAnswer(newans)
+    if (currentIndex.index > 0) {
+      let newans = {
+        ...answer,
+        [currentIndex.attempt]: [...answer[currentIndex.attempt]],
+      }
+      newans[currentIndex.attempt][currentIndex.index - 1] = ""
+      setCurrentIndex((prev) => ({ ...prev, index: prev.index - 1 }))
+      setAnswer(newans)
+    }
   }
 
   useEffect(() => {
@@ -69,23 +108,38 @@ export const GameGrid: React.FC = () => {
 
   return (
     <div className="w-max m-auto">
-      <h1>You magic number today is {randomNumber}</h1>
-      <h2>Random number sum: {randomNumberSum}</h2>
-      <div className="pt-4 grid grid-cols-6 gap-4">
-        {answer.map((a: string, index) => (
-          <GridItem
-            key={index}
-            borderColor={`${
-              gameStatus === "inprogress"
-                ? "border-grey-500/100"
-                : gameStatus === "right"
-                ? "border-green-500/100"
-                : "border-red-500/100"
-            }`}
-          >
-            <span>{a}</span>
-          </GridItem>
-        ))}
+      <h1 className="text-4xl pt-8">{`Today's magic number is ${randomNumber}`}</h1>
+      <h2 className="text-2xl pt-4">Sum: {randomNumberSum}</h2>
+      {gameOver && <h2 className="text-2xl pt-4">GAME OVER</h2>}
+
+      <div>
+        {Object.keys(answer).map((attempt) => {
+          return (
+            <div key={attempt} className="flex items-center">
+              {
+                <div className={`pt-4 grid grid-cols-6 gap-4 opacity-100`}>
+                  {answer[attempt].map((a: string, index) => (
+                    <GridItem
+                      key={`${attempt}${index}`}
+                      borderColor={`${
+                        ["inprogress", "idle"].includes(gameStatus[attempt])
+                          ? "border-grey-500/100"
+                          : gameStatus[attempt] === "solved"
+                          ? "border-green-500/100"
+                          : "border-red-500/100"
+                      }`}
+                    >
+                      <span>{a}</span>
+                    </GridItem>
+                  ))}
+                  <GridItem borderColor={"border-white"}>
+                    <span>A{attempt}</span>
+                  </GridItem>
+                </div>
+              }
+            </div>
+          )
+        })}
       </div>
       <div className="pt-10 grid grid-cols-10 gap-4">
         {Array.from({ length: 10 }).map((a: number, index) => (
