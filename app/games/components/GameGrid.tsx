@@ -30,6 +30,8 @@ export const GameGrid: React.FC = () => {
     1: ["", "", "", "", ""],
     2: ["", "", "", "", ""],
     3: ["", "", "", "", ""],
+    4: ["", "", "", "", ""],
+    5: ["", "", "", "", ""],
   })
 
   const [currentIndex, setCurrentIndex] = useState({
@@ -43,6 +45,8 @@ export const GameGrid: React.FC = () => {
     1: "inprogress",
     2: "idle",
     3: "idle",
+    4: "idle",
+    5: "idle",
   })
 
   const gameOver =
@@ -52,12 +56,17 @@ export const GameGrid: React.FC = () => {
     gameStatus[3] === "failed"
 
   const handleNumberClick = (input) => {
-    if (isPlaying === false) {
+    // do not allow user to proceed is game is over
+    if (gameOver) {
+      return false
+    }
+
+    if (isPlaying === false && !gameOver) {
       setIsPlaying(true)
     }
 
-    if (currentIndex.index <= 5 && answer[currentIndex.attempt].indexOf(input) === -1) {
-      setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
+    if (currentIndex.index < 5 && answer[currentIndex.attempt].indexOf(input) === -1) {
+      if (currentIndex.index < 4) setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
       let newans = {
         ...answer,
         [currentIndex.attempt]: [...answer[currentIndex.attempt]],
@@ -68,6 +77,11 @@ export const GameGrid: React.FC = () => {
   }
 
   const checkAnswer = () => {
+    // check if all cells are filled for the current attempt
+    if (typeof answer[currentIndex.attempt][4] !== "number") {
+      return false
+    }
+
     const res: any = answer[currentIndex.attempt].reduce((a, b) => a + b)
     if (res === randomNumberSum) {
       setIsPlaying(false)
@@ -82,12 +96,17 @@ export const GameGrid: React.FC = () => {
   }
 
   const handleDelete = () => {
-    if (currentIndex.index > 0) {
+    // do not allow user to delete after the game is over
+    if (gameOver) {
+      return false
+    }
+
+    if (currentIndex.index > -1) {
       let newans = {
         ...answer,
         [currentIndex.attempt]: [...answer[currentIndex.attempt]],
       }
-      newans[currentIndex.attempt][currentIndex.index - 1] = ""
+      newans[currentIndex.attempt][currentIndex.index] = ""
       setCurrentIndex((prev) => ({ ...prev, index: prev.index - 1 }))
       setAnswer(newans)
     }
@@ -107,17 +126,17 @@ export const GameGrid: React.FC = () => {
   }, [])
 
   return (
-    <div className="w-max m-auto">
-      <h1 className="text-4xl pt-8">{`Today's magic number is ${randomNumber}`}</h1>
-      <h2 className="text-2xl pt-4">Sum: {randomNumberSum}</h2>
+    <div className="flex flex-col justify-center items-center">
+      <h1 className="text-2xl pt-4">{`Today's magic number is ${randomNumber}`}</h1>
+      <h2 className="text-xl pt-2">Sum: {randomNumberSum}</h2>
       {gameOver && <h2 className="text-2xl pt-4">GAME OVER</h2>}
 
       <div>
         {Object.keys(answer).map((attempt) => {
           return (
-            <div key={attempt} className="flex items-center">
+            <div key={attempt} className="flex items-center justify-center">
               {
-                <div className={`pt-4 grid grid-cols-6 gap-4 opacity-100`}>
+                <div className={`pt-4 grid grid-cols-5 gap-4 opacity-100`}>
                   {answer[attempt].map((a: string, index) => (
                     <GridItem
                       key={`${attempt}${index}`}
@@ -132,40 +151,42 @@ export const GameGrid: React.FC = () => {
                       <span>{a}</span>
                     </GridItem>
                   ))}
-                  <GridItem borderColor={"border-white"}>
+                  {/* <GridItem borderColor={"border-white"}>
                     <span>A{attempt}</span>
-                  </GridItem>
+                  </GridItem> */}
                 </div>
               }
             </div>
           )
         })}
       </div>
-      <div className="pt-10 grid grid-cols-10 gap-4">
-        {Array.from({ length: 10 }).map((a: number, index) => (
+
+      <div className="flex items-center justify-center">
+        <div className="pt-10 grid grid-cols-4 gap-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((a: number, index) => (
+            <div
+              onClick={() => handleNumberClick(a)}
+              key={a}
+              className={`flex font-medium items-center justify-center h-16 w-10 cursor-pointer bg-gray-200 rounded-md`}
+            >
+              {a}
+            </div>
+          ))}
           <div
-            onClick={() => handleNumberClick(index)}
-            key={index}
-            className={`flex font-medium items-center justify-center h-16 w-10 cursor-pointer bg-gray-200 rounded-md`}
+            onClick={() => checkAnswer()}
+            className={`flex items-center justify-center h-16 w-max px-4 cursor-pointer bg-gray-200 rounded-md`}
           >
-            {index.toString()}
+            <GrReturn />
           </div>
-        ))}
-      </div>
-      <div className="w-max pt-2 grid grid-cols-2 gap-4">
-        <div
-          onClick={() => checkAnswer()}
-          className={`flex mt-4 items-center justify-center h-10 w-max px-4 cursor-pointer bg-gray-200 rounded-md`}
-        >
-          <GrReturn />
-        </div>
-        <div
-          onClick={() => handleDelete()}
-          className={`flex mt-4 items-center justify-center h-10 w-max px-4 cursor-pointer bg-gray-200 rounded-md`}
-        >
-          <TiBackspaceOutline />
+          <div
+            onClick={() => handleDelete()}
+            className={`flex items-center justify-center h-16 w-max px-4 cursor-pointer bg-gray-200 rounded-md`}
+          >
+            <TiBackspaceOutline />
+          </div>
         </div>
       </div>
+
       <div className="mt-8 font-bold">
         <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
         <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>

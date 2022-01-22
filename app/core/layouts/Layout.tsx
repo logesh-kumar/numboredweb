@@ -5,13 +5,12 @@ const Layout: BlitzLayout<{ title?: string }> = ({ title, children }) => {
     <>
       <Head>
         <title>{title || "numboredweb"}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="container mx-auto">
-        <main role="main" className="w-full mt-4">
-          {children}
-        </main>
+      <div className="w-500 m-auto">
+        <main role="main">{children}</main>
       </div>
     </>
   )
