@@ -1,6 +1,6 @@
 import { Head, BlitzLayout } from "blitz"
 
-const Layout: BlitzLayout<{title?: string}> = ({ title, children }) => {
+const Layout: BlitzLayout<{ title?: string }> = ({ title, children }) => {
   return (
     <>
       <Head>
@@ -8,7 +8,11 @@ const Layout: BlitzLayout<{title?: string}> = ({ title, children }) => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {children}
+      <div className="container mx-auto">
+        <main role="main" className="w-full mt-4">
+          {children}
+        </main>
+      </div>
     </>
   )
 }

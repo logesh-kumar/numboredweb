@@ -25,6 +25,7 @@
   },
   "dependencies": {
     "@prisma/client": "3.8.1",
+    "add": "2.0.6",
     "autoprefixer": "10.x",
     "blitz": "0.45.2",
     "final-form": "4.20.6",
@@ -32,7 +33,10 @@
     "react": "18.0.0-beta-149b420f6-20211119",
     "react-dom": "18.0.0-alpha-5ca4b0433-20211020",
     "react-final-form": "6.5.7",
+    "react-icons": "4.3.1",
     "tailwindcss": "3.x",
+    "use-elapsed-time": "3.0.4",
+    "yarn": "1.22.17",
     "zod": "3.11.6"
   },
   "devDependencies": {
