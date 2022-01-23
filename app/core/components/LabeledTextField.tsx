@@ -30,34 +30,25 @@ export const LabeledTextField = forwardRef<HTMLInputElement, LabeledTextFieldPro
     const normalizedError = Array.isArray(error) ? error.join(", ") : error || submitError
 
     return (
-      <div {...outerProps}>
-        <label {...labelProps}>
+      <div className="flex flex-col mb-6" {...outerProps}>
+        <label className="mb-1 text-xs sm:text-sm tracking-wide text-gray-600" {...labelProps}>
           {label}
-          <input {...input} disabled={submitting} {...props} ref={ref} />
         </label>
+        <div className="relative">
+          <input
+            {...input}
+            disabled={submitting}
+            {...props}
+            ref={ref}
+            className="text-sm sm:text-base placeholder-gray-500 pl-1 pr-4 rounded-lg border border-gray-400 w-60 py-2 focus:outline-none focus:border-blue-400"
+          />
+        </div>
 
         {touched && normalizedError && (
           <div role="alert" style={{ color: "red" }}>
             {normalizedError}
           </div>
         )}
-
-        <style jsx>{`
-          label {
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-            font-size: 1rem;
-          }
-          input {
-            font-size: 1rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 3px;
-            border: 1px solid purple;
-            appearance: none;
-            margin-top: 0.5rem;
-          }
-        `}</style>
       </div>
     )
   }
