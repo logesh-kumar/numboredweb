@@ -21,9 +21,9 @@ model User {
   hashedPassword String?
   role           String   @default("USER")
 
-  tokens   Token[]
-  sessions Session[]
-  games    Game[]
+  tokens    Token[]
+  sessions  Session[]
+  userGames UserGame[]
 }
 
 model Session {
@@ -58,22 +58,25 @@ model Token {
 
 model Game {
   id          Int      @id @default(autoincrement())
-  userId      Int
-  text        String
-  magicNumber String
+  magicNumber Int
   duration    Float?
-  playedon    DateTime @default(now())
+  score       Float?
+  createdDate DateTime @default(now()) @db.Date()
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  userGames UserGame[]
 }
 
-model Leaderboard {
-  id Int @id @default(autoincrement())
-
+model UserGame {
+  id        Int      @id @default(autoincrement())
+  gameId    Int
+  userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  game Game @relation(fields: [gameId], references: [id])
 }
 
 enum TokenType {

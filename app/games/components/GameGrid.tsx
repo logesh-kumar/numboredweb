@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react"
 import { TiBackspaceOutline } from "react-icons/ti"
 import { GrReturn } from "react-icons/gr"
 import { useElapsedTime } from "use-elapsed-time"
+import { useQuery } from "blitz"
+import getGame from "../queries/getGame"
+import { invoke } from "blitz"
 
 const GridItem: React.FC<{
   borderColor: string
@@ -20,11 +23,6 @@ export const GameGrid: React.FC = () => {
   const [randomNumber, setRandomNumber] = useState(0)
 
   const { elapsedTime } = useElapsedTime({ isPlaying })
-  const randomNumberSum = randomNumber
-    .toString()
-    .split("")
-    .map((a) => parseInt(a))
-    .reduce((a, b) => a + b)
 
   const [answer, setAnswer] = useState({
     1: ["", "", "", "", ""],
@@ -93,7 +91,7 @@ export const GameGrid: React.FC = () => {
     }
 
     const res: any = answer[currentIndex.attempt].reduce((a, b) => a + b)
-    if (res === randomNumberSum) {
+    if (res === randomNumber) {
       setIsPlaying(false)
     } else {
       if (currentIndex.attempt === 5) {
@@ -104,7 +102,7 @@ export const GameGrid: React.FC = () => {
 
     setGameStaus({
       ...gameStatus,
-      [currentIndex.attempt]: res === randomNumberSum ? "solved" : "failed",
+      [currentIndex.attempt]: res === randomNumber ? "solved" : "failed",
     })
   }
 
@@ -125,22 +123,18 @@ export const GameGrid: React.FC = () => {
     }
   }
 
+  // Prefetch todays random number on load
   useEffect(() => {
-    function generateRandomNumber() {
-      const random = Math.round(Math.random() * (90000 - 12345) + 12345)
-      const randomUnique = new Set(random.toString().split(""))
-      if (randomUnique.size === 5) {
-        setRandomNumber(random)
-      } else {
-        generateRandomNumber()
-      }
-    }
-    generateRandomNumber()
+    invoke(getGame, {})
+      .then((data) => {
+        setRandomNumber(data.magicNumber)
+      })
+      .catch((err) => console.log(err))
   }, [])
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <h2 className="text-2xl pt-1">{`Today's magic number is ${randomNumberSum}`}</h2>
+      <h2 className="text-2xl pt-1">{`Today's magic number is ${randomNumber}`}</h2>
       <div className="mt-2 font-bold">
         <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
         <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>
@@ -167,9 +161,6 @@ export const GameGrid: React.FC = () => {
                         <span>{a}</span>
                       </GridItem>
                     ))}
-                    {/* <GridItem borderColor={"border-white"}>
-                    <span>A{attempt}</span>
-                  </GridItem> */}
                   </div>
                 }
               </div>
