@@ -53,7 +53,9 @@ export const GameGrid: React.FC = () => {
     gameStatus[1] === "solved" ||
     gameStatus[2] === "solved" ||
     gameStatus[3] === "solved" ||
-    gameStatus[3] === "failed"
+    gameStatus[4] === "solved" ||
+    gameStatus[5] === "solved" ||
+    gameStatus[5] === "failed"
 
   const handleNumberClick = (input) => {
     // do not allow user to proceed is game is over
