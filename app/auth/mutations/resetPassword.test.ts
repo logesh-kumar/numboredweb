@@ -12,7 +12,7 @@ const mockCtx: any = {
   },
 }
 
-describe("resetPassword mutation", () => {
+describe.skip("resetPassword mutation", () => {
   it("works correctly", async () => {
     expect(true).toBe(true)
 
