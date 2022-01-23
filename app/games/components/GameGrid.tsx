@@ -129,38 +129,41 @@ export const GameGrid: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <h1 className="text-2xl pt-4">{`Today's magic number is ${randomNumber}`}</h1>
-      <h2 className="text-xl pt-2">Sum: {randomNumberSum}</h2>
+      <div className="mt-2 font-bold">
+        <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
+        <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>
+      </div>
       {gameOver && <h2 className="text-2xl pt-4">GAME OVER</h2>}
-
-      <div>
-        {Object.keys(answer).map((attempt) => {
-          return (
-            <div key={attempt} className="flex items-center justify-center">
-              {
-                <div className={`pt-4 grid grid-cols-5 gap-4 opacity-100`}>
-                  {answer[attempt].map((a: string, index) => (
-                    <GridItem
-                      key={`${attempt}${index}`}
-                      borderColor={`${
-                        ["inprogress", "idle"].includes(gameStatus[attempt])
-                          ? "border-grey-500/100"
-                          : gameStatus[attempt] === "solved"
-                          ? "border-green-500/100"
-                          : "border-red-500/100"
-                      }`}
-                    >
-                      <span>{a}</span>
-                    </GridItem>
-                  ))}
-                  {/* <GridItem borderColor={"border-white"}>
+      <div className="flex flex-col justify-center items-center">
+        <div className="w-350">
+          {Object.keys(answer).map((attempt) => {
+            return (
+              <div key={attempt} className="flex items-center justify-center">
+                {
+                  <div className={`pt-4 grid grid-cols-5 gap-4 opacity-100`}>
+                    {answer[attempt].map((a: string, index) => (
+                      <GridItem
+                        key={`${attempt}${index}`}
+                        borderColor={`${
+                          ["inprogress", "idle"].includes(gameStatus[attempt])
+                            ? "border-grey-500/100"
+                            : gameStatus[attempt] === "solved"
+                            ? "border-green-500/100"
+                            : "border-red-500/100"
+                        }`}
+                      >
+                        <span>{a}</span>
+                      </GridItem>
+                    ))}
+                    {/* <GridItem borderColor={"border-white"}>
                     <span>A{attempt}</span>
                   </GridItem> */}
-                </div>
-              }
-            </div>
-          )
-        })}
+                  </div>
+                }
+              </div>
+            )
+          })}
+        </div>
       </div>
 
       <div className="flex items-center justify-center">
@@ -187,11 +190,6 @@ export const GameGrid: React.FC = () => {
             <TiBackspaceOutline />
           </div>
         </div>
-      </div>
-
-      <div className="mt-8 font-bold">
-        <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
-        <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>
       </div>
     </div>
   )

@@ -8,7 +8,7 @@ const CreateGame = z.object({
 
 export default resolver.pipe(resolver.zod(CreateGame), resolver.authorize(), async (input) => {
   // TODO: in multi-tenant app, you must add validation to ensure correct tenant
-  const game = await db.game.create({ data: input })
+  //const game = await db.game.create({ data: input })
 
-  return game
+  return null
 })
