@@ -9,7 +9,7 @@ const GridItem: React.FC<{
 }> = ({ children, borderColor, onClick = () => {} }) => (
   <div
     onClick={onClick}
-    className={`flex font-medium items-center justify-center w-14 h-14 border-4 ${borderColor} cursor-pointer`}
+    className={`flex font-medium items-center justify-center w-14 h-14 border-2 ${borderColor} cursor-pointer select-none`}
   >
     {children}
   </div>
@@ -36,7 +36,7 @@ export const GameGrid: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState({
     attempt: 1,
-    index: 0,
+    index: -1,
   })
 
   const [gameStatus, setGameStaus] = useState<{
@@ -59,26 +59,34 @@ export const GameGrid: React.FC = () => {
 
   const handleNumberClick = (input) => {
     // do not allow user to proceed is game is over
-    if (gameOver) {
+    if (gameOver || currentIndex.index > 3) {
       return false
     }
+
+    if (currentIndex.index < 4) setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
 
     if (isPlaying === false && !gameOver) {
       setIsPlaying(true)
     }
 
-    if (currentIndex.index < 5 && answer[currentIndex.attempt].indexOf(input) === -1) {
-      if (currentIndex.index < 4) setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
+    if (currentIndex.index < 5) {
       let newans = {
         ...answer,
         [currentIndex.attempt]: [...answer[currentIndex.attempt]],
       }
-      newans[currentIndex.attempt][currentIndex.index] = input
+
+      newans[currentIndex.attempt][currentIndex.index + 1] = input
+
       setAnswer(newans)
     }
   }
 
   const checkAnswer = () => {
+    // do not allow user to delete after the game is over
+    if (gameOver) {
+      return false
+    }
+
     // check if all cells are filled for the current attempt
     if (typeof answer[currentIndex.attempt][4] !== "number") {
       return false
@@ -88,7 +96,10 @@ export const GameGrid: React.FC = () => {
     if (res === randomNumberSum) {
       setIsPlaying(false)
     } else {
-      setCurrentIndex((prev) => ({ index: 0, attempt: prev.attempt + 1 }))
+      if (currentIndex.attempt === 5) {
+        setIsPlaying(false)
+      }
+      setCurrentIndex((prev) => ({ index: -1, attempt: prev.attempt + 1 }))
     }
 
     setGameStaus({
@@ -103,14 +114,14 @@ export const GameGrid: React.FC = () => {
       return false
     }
 
-    if (currentIndex.index > -1) {
+    if (currentIndex.index >= 0) {
       let newans = {
         ...answer,
         [currentIndex.attempt]: [...answer[currentIndex.attempt]],
       }
       newans[currentIndex.attempt][currentIndex.index] = ""
-      setCurrentIndex((prev) => ({ ...prev, index: prev.index - 1 }))
       setAnswer(newans)
+      setCurrentIndex((prev) => ({ ...prev, index: prev.index - 1 }))
     }
   }
 
@@ -129,18 +140,19 @@ export const GameGrid: React.FC = () => {
 
   return (
     <div className="flex flex-col justify-center items-center">
+      <h2 className="text-2xl pt-1">{`Today's magic number is ${randomNumberSum}`}</h2>
       <div className="mt-2 font-bold">
         <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
         <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>
       </div>
-      {gameOver && <h2 className="text-2xl pt-4">GAME OVER</h2>}
+      {/* {gameOver && <h2 className="text-2xl pt-4">GAME OVER</h2>} */}
       <div className="flex flex-col justify-center items-center">
         <div className="w-350">
           {Object.keys(answer).map((attempt) => {
             return (
               <div key={attempt} className="flex items-center justify-center">
                 {
-                  <div className={`pt-4 grid grid-cols-5 gap-4 opacity-100`}>
+                  <div className={`pt-2 grid grid-cols-5 gap-2`}>
                     {answer[attempt].map((a: string, index) => (
                       <GridItem
                         key={`${attempt}${index}`}
@@ -167,7 +179,7 @@ export const GameGrid: React.FC = () => {
       </div>
 
       <div className="flex items-center justify-center">
-        <div className="pt-10 grid grid-cols-4 gap-2">
+        <div className="pt-6 grid grid-cols-4 gap-3">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 0].map((a: number, index) => (
             <div
               onClick={() => handleNumberClick(a)}
