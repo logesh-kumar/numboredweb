@@ -17,7 +17,23 @@ export default resolver.pipe(
       skip,
       take,
       count: () => db.game.count({ where }),
-      query: (paginateArgs) => db.game.findMany({ ...paginateArgs, where, orderBy }),
+      query: (paginateArgs) =>
+        db.game.findMany({
+          ...paginateArgs,
+          where,
+          orderBy,
+          select: {
+            id: true,
+            duration: true,
+            user: {
+              select: {
+                email: true,
+                name: true,
+              },
+            },
+            attempt: true,
+          },
+        }),
     })
 
     return {

@@ -13,7 +13,7 @@ export default async function customRoute(req: BlitzApiRequest, res: BlitzApiRes
         .map((a) => parseInt(a))
         .reduce((a, b) => a + b)
 
-      const game = await db.game.create({
+      const magicNumber = await db.magicNumber.create({
         data: {
           magicNumber: randomNumberSum,
         },
@@ -23,13 +23,13 @@ export default async function customRoute(req: BlitzApiRequest, res: BlitzApiRes
     }
   }
 
-  const game = await db.game.findFirst({
+  const magicNumber = await db.magicNumber.findFirst({
     where: {
       createdDate: new Date(),
     },
   })
 
-  if (!game) {
+  if (!magicNumber) {
     await generateRandomNumber()
   }
 

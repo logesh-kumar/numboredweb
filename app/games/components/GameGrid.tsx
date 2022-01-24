@@ -2,9 +2,11 @@ import React, { useEffect, useState } from "react"
 import { TiBackspaceOutline } from "react-icons/ti"
 import { GrReturn } from "react-icons/gr"
 import { useElapsedTime } from "use-elapsed-time"
-import { useQuery } from "blitz"
-import getGame from "../queries/getGame"
+import { useMutation } from "blitz"
+import getMagicNumber from "../queries/getMagicNumber"
 import { invoke } from "blitz"
+import createGame from "../mutations/createGame"
+import { useCurrentUser } from "app/core/hooks/useCurrentUser"
 
 const GridItem: React.FC<{
   borderColor: string
@@ -19,9 +21,9 @@ const GridItem: React.FC<{
 )
 
 export const GameGrid: React.FC = () => {
+  const user = useCurrentUser()
   const [isPlaying, setIsPlaying] = useState(false)
-  const [randomNumber, setRandomNumber] = useState(0)
-
+  const [{ magicNumber, id: magicNumberId }, setRandomNumber] = useState({ id: 0, magicNumber: 0 })
   const { elapsedTime } = useElapsedTime({ isPlaying })
 
   const [answer, setAnswer] = useState({
@@ -32,7 +34,7 @@ export const GameGrid: React.FC = () => {
     5: ["", "", "", "", ""],
   })
 
-  const [currentIndex, setCurrentIndex] = useState({
+  const [currentAttempt, setCurrentAttempt] = useState({
     attempt: 1,
     index: -1,
   })
@@ -57,52 +59,70 @@ export const GameGrid: React.FC = () => {
 
   const handleNumberClick = (input) => {
     // do not allow user to proceed is game is over
-    if (gameOver || currentIndex.index > 3) {
+    if (gameOver || currentAttempt.index > 3) {
       return false
     }
 
-    if (currentIndex.index < 4) setCurrentIndex((prev) => ({ ...prev, index: prev.index + 1 }))
+    //check if number already exists
+    if (answer[currentAttempt.attempt].indexOf(input) !== -1) {
+      return false
+    }
+
+    if (currentAttempt.index < 4) setCurrentAttempt((prev) => ({ ...prev, index: prev.index + 1 }))
 
     if (isPlaying === false && !gameOver) {
       setIsPlaying(true)
     }
 
-    if (currentIndex.index < 5) {
+    if (currentAttempt.index < 5) {
       let newans = {
         ...answer,
-        [currentIndex.attempt]: [...answer[currentIndex.attempt]],
+        [currentAttempt.attempt]: [...answer[currentAttempt.attempt]],
       }
 
-      newans[currentIndex.attempt][currentIndex.index + 1] = input
+      newans[currentAttempt.attempt][currentAttempt.index + 1] = input
 
       setAnswer(newans)
     }
   }
 
-  const checkAnswer = () => {
+  const [createGameMutation] = useMutation(createGame)
+
+  const checkAnswer = async () => {
     // do not allow user to delete after the game is over
     if (gameOver) {
       return false
     }
 
     // check if all cells are filled for the current attempt
-    if (typeof answer[currentIndex.attempt][4] !== "number") {
+    if (typeof answer[currentAttempt.attempt][4] !== "number") {
       return false
     }
 
-    const res: any = answer[currentIndex.attempt].reduce((a, b) => a + b)
-    if (res === randomNumber) {
+    const res: any = answer[currentAttempt.attempt].reduce((a, b) => a + b)
+    if (res === magicNumber) {
       setIsPlaying(false)
+      try {
+        await createGameMutation({
+          duration: elapsedTime,
+          magicNumberId,
+          score: 0,
+          userId: user!.id,
+          attempt: currentAttempt.attempt,
+        })
+      } catch (error) {
+        throw new Error(error)
+      }
     } else {
-      if (currentIndex.attempt === 5) {
+      if (currentAttempt.attempt === 5) {
         setIsPlaying(false)
       }
-      setCurrentIndex((prev) => ({ index: -1, attempt: prev.attempt + 1 }))
+      setCurrentAttempt((prev) => ({ index: -1, attempt: prev.attempt + 1 }))
     }
 
     setGameStaus({
       ...gameStatus,
-      [currentIndex.attempt]: res === randomNumber ? "solved" : "failed",
+      [currentAttempt.attempt]: res === magicNumber ? "solved" : "failed",
     })
   }
 
@@ -112,29 +132,29 @@ export const GameGrid: React.FC = () => {
       return false
     }
 
-    if (currentIndex.index >= 0) {
+    if (currentAttempt.index >= 0) {
       let newans = {
         ...answer,
-        [currentIndex.attempt]: [...answer[currentIndex.attempt]],
+        [currentAttempt.attempt]: [...answer[currentAttempt.attempt]],
       }
-      newans[currentIndex.attempt][currentIndex.index] = ""
+      newans[currentAttempt.attempt][currentAttempt.index] = ""
       setAnswer(newans)
-      setCurrentIndex((prev) => ({ ...prev, index: prev.index - 1 }))
+      setCurrentAttempt((prev) => ({ ...prev, index: prev.index - 1 }))
     }
   }
 
   // Prefetch todays random number on load
   useEffect(() => {
-    invoke(getGame, {})
+    invoke(getMagicNumber, {})
       .then((data) => {
-        setRandomNumber(data.magicNumber)
+        setRandomNumber({ id: data.id, magicNumber: data.magicNumber })
       })
       .catch((err) => console.log(err))
   }, [])
 
   return (
     <div className="flex flex-col justify-center items-center">
-      <h2 className="text-2xl pt-1">{`Today's magic number is ${randomNumber}`}</h2>
+      <h2 className="text-2xl pt-1">{`Today's magic number is ${magicNumber}`}</h2>
       <div className="mt-2 font-bold">
         <span>{gameStatus === "right" ? "Completed in" : "Time elapsed"}:</span>{" "}
         <span>{elapsedTime.toFixed(2)}</span> <span> Seconds</span>

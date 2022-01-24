@@ -1,9 +1,7 @@
-import { useCurrentUser } from "app/core/hooks/useCurrentUser"
 import Layout from "app/core/layouts/Layout"
 import { GameGrid } from "app/games/components/GameGrid"
-import createGame from "app/games/mutations/createGame"
-import { BlitzPage, useMutation, useQuery } from "blitz"
-import { Suspense, useEffect } from "react"
+import { BlitzPage, useQuery } from "blitz"
+import { Suspense } from "react"
 
 const GamesPage: BlitzPage = () => {
   return (
