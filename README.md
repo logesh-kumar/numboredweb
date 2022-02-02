@@ -2,7 +2,9 @@
 
 This is a [Blitz.js](https://github.com/blitz-js/blitz) app.
 
-# **numboredweb**
+# **Numbored - A boring number game **
+
+The game is work in progress and expected to be released by end of feb 2022. You can try the game here http://numbored.spicesinfo.in/
 
 ## Getting Started
 
